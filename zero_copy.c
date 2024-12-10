@@ -5,11 +5,13 @@
 #include <string.h>
 #include <sys/socket.h>
 #include <sys/un.h>
+#include <time.h>
 #include <unistd.h>
 
 #include "mmap_send.h"
 #include "read_send.h"
 #include "send_file.h"
+#include "splice_file.h"
 
 // Read whole file content from filefd and write it to sockfd.
 typedef int (*CopyFunc)(int filefd, int sockfd);
@@ -22,6 +24,8 @@ int copy_file(const char *method, int filefd, int sockfd) {
     copy_func = mmap_send;
   } else if (strcmp(method, "send_file") == 0) {
     copy_func = send_file;
+  } else if (strcmp(method, "splice_file") == 0) {
+    copy_func = splice_file;
   } else {
     fprintf(stderr, "Method '%s' not supported\n", method);
     return EXIT_FAILURE;
@@ -161,8 +165,23 @@ int send_to_unix_socket(int argc, char *argv[]) {
   return 0;
 }
 int main(int argc, char *argv[]) {
+  clock_t start, end;
+  double cpu_time_used;
+
+  start = clock();
+
+  int ret_code;
   if (argc == 5) {
-    return send_to_tcp_socket(argc, argv);
+    ret_code = send_to_tcp_socket(argc, argv);
+  } else {
+    ret_code = send_to_unix_socket(argc, argv);
   }
-  return send_to_unix_socket(argc, argv);
+
+  end = clock();
+
+  cpu_time_used = ((double)(end - start) / CLOCKS_PER_SEC);
+
+  printf("***Metrics: %ld clocks, %f seconds\n", (end - start), cpu_time_used);
+
+  return ret_code;
 }
