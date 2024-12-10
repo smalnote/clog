@@ -4,7 +4,7 @@
 #include <sys/stat.h>
 
 int send_file(int filefd, int sockfd) {
-  off_t offset;
+  off_t offset = 0;
   size_t file_size;
   ssize_t bytes_sent;
 
