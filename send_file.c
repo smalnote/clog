@@ -5,7 +5,6 @@
 
 int send_file(int filefd, int sockfd) {
   off_t offset = 0;
-  size_t file_size;
   ssize_t bytes_sent;
 
   // Get file size
@@ -14,14 +13,23 @@ int send_file(int filefd, int sockfd) {
     perror("fstat failed");
     return -1;
   }
-  file_size = file_stat.st_size;
 
+  int sys_call_count = 0;
+
+  size_t len;
+  len = file_stat.st_size;
   // Send the file data
-  bytes_sent = sendfile(sockfd, filefd, &offset, file_size);
-  if (bytes_sent == -1) {
-    perror("Failed to send file");
-    return -1;
+  while (len > 0) {
+    sys_call_count++;
+    bytes_sent = sendfile(sockfd, filefd, &offset, len);
+    if (bytes_sent == -1) {
+      perror("Failed to send file");
+      return -1;
+    }
+    len -= bytes_sent;
   }
+
+  printf("Number of system call to sendfile: %d\n", sys_call_count);
 
   return 0;
 }
