@@ -8,7 +8,7 @@ listen_unix:
 wait:
 	sleep 2
 
-TEST_FILE = ./bin/large_file
+TEST_FILE = ./bin/small_file
 
 test_read_unix: zero_copy listen_unix wait
 	./bin/zero_copy read_send $(TEST_FILE) /tmp/zero_copy.sock

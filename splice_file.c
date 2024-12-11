@@ -9,7 +9,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-int splice_file(int filefd, int sockfd) {
+int splice_file(int filefd, int sockfd, int *sys_call_count) {
   // According to: man 2 splice
   // Splice requires one of the fd must refer to a pipe, so we can't splice a
   // file directly into a socket.
@@ -20,11 +20,13 @@ int splice_file(int filefd, int sockfd) {
   off_t offset = 0;
   ssize_t bytes_sent;
 
+  (*sys_call_count)++;
   if (pipe(pipefd) == -1) {
     perror("Failed to create pipe");
     return -1;
   }
 
+  (*sys_call_count)++;
   // Get file size
   struct stat file_stat;
   if (fstat(filefd, &file_stat) == -1) {
@@ -38,6 +40,7 @@ int splice_file(int filefd, int sockfd) {
   pipe_len = file_stat.st_size;
 
   for (;;) {
+    (*sys_call_count)++;
     // Splice file to pipe write piped[1]
     read_len =
         splice(filefd, &offset, pipefd[1], NULL, pipe_len, SPLICE_F_NONBLOCK);
@@ -57,6 +60,7 @@ int splice_file(int filefd, int sockfd) {
 
     // Send the file data
     while (read_len > 0) {
+      (*sys_call_count)++;
       write_len =
           splice(pipefd[0], NULL, sockfd, NULL, read_len, SPLICE_F_MOVE);
       if (write_len < 0) {
