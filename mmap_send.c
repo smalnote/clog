@@ -3,7 +3,7 @@
 #include <sys/mman.h>
 #include <sys/stat.h>
 
-int mmap_send(int filefd, int sockfd) {
+int mmap_send(int filefd, int sockfd, int *sys_call_count) {
   void *file_data;
   size_t file_size;
   ssize_t bytes_sent, total_sent;
@@ -16,6 +16,7 @@ int mmap_send(int filefd, int sockfd) {
   }
   file_size = file_stat.st_size;
 
+  (*sys_call_count)++;
   // Memory-map the file, return a pointer to mapped memory buffer
   file_data = mmap(NULL, file_size, PROT_READ, MAP_PRIVATE, filefd, 0);
   if (file_data == MAP_FAILED) {
@@ -25,6 +26,7 @@ int mmap_send(int filefd, int sockfd) {
 
   // Send the file data
   while (total_sent < file_size) {
+    (*sys_call_count)++;
     bytes_sent =
         send(sockfd, file_data + total_sent, file_size - total_sent, 0);
     if (bytes_sent == -1) {

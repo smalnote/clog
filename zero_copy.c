@@ -14,9 +14,9 @@
 #include "splice_file.h"
 
 // Read whole file content from filefd and write it to sockfd.
-typedef int (*CopyFunc)(int filefd, int sockfd);
+typedef int (*CopyFunc)(int filefd, int sockfd, int *sys_call_count);
 
-int copy_file(const char *method, int filefd, int sockfd) {
+int copy_file(const char *method, int filefd, int sockfd, int *sys_call_count) {
   CopyFunc copy_func = NULL;
   if (strcmp(method, "read_send") == 0) {
     copy_func = read_send;
@@ -31,7 +31,7 @@ int copy_file(const char *method, int filefd, int sockfd) {
     return EXIT_FAILURE;
   }
 
-  if (copy_func(filefd, sockfd) != 0) {
+  if (copy_func(filefd, sockfd, sys_call_count) != 0) {
     printf("File copying failed.\n");
     return -1;
   }
@@ -40,7 +40,7 @@ int copy_file(const char *method, int filefd, int sockfd) {
   return 0;
 }
 
-int send_to_tcp_socket(int argc, char *argv[]) {
+int send_to_tcp_socket(int argc, char *argv[], int *sys_call_count) {
   if (argc != 5) {
     fprintf(stderr,
             "Usage: %s <method> <file_path> <server_ip> <server_port>\n",
@@ -99,7 +99,7 @@ int send_to_tcp_socket(int argc, char *argv[]) {
     return -1;
   }
 
-  if (copy_file(method, filefd, sockfd) != 0) {
+  if (copy_file(method, filefd, sockfd, sys_call_count) != 0) {
     perror("Copy file failed");
     close(filefd);
     close(sockfd);
@@ -111,7 +111,7 @@ int send_to_tcp_socket(int argc, char *argv[]) {
   return 0;
 }
 
-int send_to_unix_socket(int argc, char *argv[]) {
+int send_to_unix_socket(int argc, char *argv[], int *sys_call_count) {
   if (argc != 4) {
     fprintf(stderr, "Usage: %s <method> <file_path> <socket_path>\n", argv[0]);
     return EXIT_FAILURE;
@@ -153,7 +153,7 @@ int send_to_unix_socket(int argc, char *argv[]) {
     return -1;
   }
 
-  if (copy_file(method, filefd, sockfd) != 0) {
+  if (copy_file(method, filefd, sockfd, sys_call_count) != 0) {
     perror("Copy file failed");
     close(filefd);
     close(sockfd);
@@ -171,17 +171,19 @@ int main(int argc, char *argv[]) {
   start = clock();
 
   int ret_code;
+  int sys_call_count = 0;
   if (argc == 5) {
-    ret_code = send_to_tcp_socket(argc, argv);
+    ret_code = send_to_tcp_socket(argc, argv, &sys_call_count);
   } else {
-    ret_code = send_to_unix_socket(argc, argv);
+    ret_code = send_to_unix_socket(argc, argv, &sys_call_count);
   }
 
   end = clock();
 
   cpu_time_used = ((double)(end - start) / CLOCKS_PER_SEC);
 
-  printf("***Metrics: %ld clocks, %f seconds\n", (end - start), cpu_time_used);
+  printf("***Metrics: %ld clocks, %f seconds, %d syscalls\n", (end - start),
+         cpu_time_used, sys_call_count);
 
   return ret_code;
 }
