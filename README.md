@@ -9,12 +9,15 @@
 
 ## Send 1GB file to Unix Socket Domain
 
-| API         | Clocks | Seconds  | Diff  |
-| ----------- | ------ | -------- | ----- |
-| read/send   | 907329 | 0.907329 | 100%  |
-| mmap/send   | 265564 | 0.265564 | 29.3% |
-| sendfile    | 131007 | 0.131007 | 14.4% |
-| splice/pipe | 158149 | 0.158149 | 17.4% |
+| API                         | Time  | Diff  |
+| --------------------------- | ----- | ----- |
+| read/send with buffer (4KB) | 907ms | 100%  |
+| read/send with buffer(8KB)  | 598ms | 65.9% |
+| read/send with buffer(16KB) | 423ms | 46.6% |
+| read/send with buffer(32KB) | 354ms | 39.0% |
+| mmap/send                   | 265ms | 29.3% |
+| sendfile                    | 131ms | 14.4% |
+| splice/pipe                 | 158ms | 17.4% |
 
 > [!NOTE]
 > API splice/pipe use a pipe to connect filefd and sockfd, according to `man 2 spclie`,
