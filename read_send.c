@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <unistd.h>
 
-#define BUFFER_SIZE 4096
+#define BUFFER_SIZE 32768
 
 int read_send(int filefd, int sockfd, int *sys_call_count) {
   char buffer[BUFFER_SIZE];
