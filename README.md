@@ -18,6 +18,6 @@
 | splice/pipe                  | 158ms | 17.4% | 0.01user 0.13system 0:00.50elapsed 30%CPU (1440maxresident)k    |
 
 > [!NOTE]
-> API splice/pipe use a pipe to connect filefd and sockfd, according to `man 2 spclie`,
+> API splice/pipe use a pipe to connect filefd and sockfd, according to `man 2 splice`,
 > the splice function requires one of file descriptor to be pipe, result in:
 > splice(filefd, pipefd[1]) and splice(pipefd[1], sockfd).
