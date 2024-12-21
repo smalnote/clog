@@ -1,24 +1,51 @@
-zero_copy: zero_copy.c read_send.c mmap_send.c send_file.c splice_file.c
-	clang -o ./bin/zero_copy zero_copy.c read_send.c mmap_send.c send_file.c splice_file.c
+# Compiler and flags
+CC = clang
+CFLAGS = -Wall -Wextra -O2
+
+# Source files and object files
+SRC = $(wildcard *.c)
+OBJ = $(patsubst %.c, ./bin/%.o, $(SRC))
+
+# Output directory and target executable
+BIN_DIR = ./bin
+TARGET = $(BIN_DIR)/zero_copy
+
+# Rule to build the target, first target is the default target
+$(TARGET): $(OBJ)
+	@mkdir -p $(BIN_DIR)
+	$(CC) $(CFLAGS) -o $@ $^
+
+# Rule to compile .c files into .o files
+./bin/%.o: %.c
+	@mkdir -p $(BIN_DIR)
+	$(CC) $(CFLAGS) -c $< -o $@
+
+# Clean up generated files
+clean:
+	rm -rf $(BIN_DIR)
+
+# Phony targets
+.PHONY: clean
 
 # Read file and send to unix socket server
 listen_unix:
 	./listen_unix.sh /tmp/zero_copy.sock &
 
-small_file:
+bin/small_file:
 	dd if=/dev/random of=./bin/small_file bs=1M count=1
 
-TEST_FILE = ./bin/large_file
-
-large_file:
+bin/large_file:
 	mkdir -p ./bin && dd if=/dev/urandom of=./bin/large_file bs=1M count=1024
-METHOD = ""
+
+TEST_FILE = bin/large_file
 
 nc_unix_listener:
 	(nc -lU /tmp/zero_copy.sock >/dev/null && rm /tmp/zero_copy.sock &) && sleep 0.5
 
-command_unix_socket: zero_copy
-	time ./bin/zero_copy $(METHOD) $(TEST_FILE) /tmp/zero_copy.sock
+METHOD = ""
+
+command_unix_socket: $(TARGET) $(TEST_FILE)
+	time $(TARGET) $(METHOD) $(TEST_FILE) /tmp/zero_copy.sock
 
 read_send:
 	$(eval METHOD := read_send)
