@@ -18,7 +18,6 @@ int splice_file(int filefd, int sockfd, int *sys_call_count) {
   // filefd -> piped[0] piped[1] -> sockfd
   int pipefd[2];
   off_t offset = 0;
-  ssize_t bytes_sent;
 
   (*sys_call_count)++;
   if (pipe(pipefd) == -1) {

@@ -5,8 +5,8 @@
 
 int mmap_send(int filefd, int sockfd, int *sys_call_count) {
   void *file_data;
-  size_t file_size;
-  ssize_t bytes_sent, total_sent;
+  size_t file_size, total_sent = 0;
+  ssize_t bytes_sent;
 
   // Get file size
   struct stat file_stat;

@@ -61,10 +61,6 @@ int send_to_tcp_socket(int argc, char *argv[], int *sys_call_count) {
 
   int sockfd, filefd;
   struct sockaddr_in server_addr;
-  struct stat file_stat;
-  void *file_data;
-  size_t file_size;
-  ssize_t bytes_sent, total_sent;
 
   // Create socket
   sockfd = socket(AF_INET, SOCK_STREAM, 0);
