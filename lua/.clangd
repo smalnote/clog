@@ -1,0 +1,5 @@
+CompileFlags:
+  Add: # Add additional flags for the compiler
+    - "-I/home/smalnote/devkit/lua5.1/include"
+    - "-DDEBUG"
+    - "-std=c11"
